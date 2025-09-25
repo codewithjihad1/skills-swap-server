@@ -117,71 +117,62 @@ app.delete("/users/:id", async (req, res) => {
 
 // ------------------- SKILLS COLLECTION CRUD APIs -------------------
 
-// CREATE Skill
+// ------------------- SKILLS COLLECTION CRUD APIs -------------------
+
+// CREATE Skill - FIXED VERSION
 app.post("/skillsCollection", async (req, res) => {
   try {
-    const skill = new Skill(req.body);
+    console.log("📝 Creating new skill:", req.body);
+    
+    // Validate required fields
+    if (!req.body.name || !req.body.category || !req.body.userId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Missing required fields: name, category, userId" 
+      });
+    }
+    
+    const skill = new Skill({
+      name: req.body.name,
+      category: req.body.category,
+      proficiency: req.body.proficiency || "Beginner",
+      userId: req.body.userId
+    });
+    
     await skill.save();
-    res.status(201).json(skill);
+    console.log("✅ Skill created successfully:", skill._id);
+    
+    res.status(201).json({ 
+      success: true, 
+      message: "Skill created successfully",
+      data: skill 
+    });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("❌ Skill creation error:", err);
+    res.status(400).json({ 
+      success: false, 
+      error: err.message 
+    });
   }
 });
 
-// READ All Skills
+// READ All Skills - FIXED VERSION
 app.get("/skillsCollection", async (req, res) => {
   try {
+    console.log("📖 Fetching all skills");
     const skills = await Skill.find().populate('userId', 'name email');
-    res.json(skills);
+    
+    res.json({ 
+      success: true, 
+      count: skills.length,
+      data: skills 
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// READ Skills by User ID
-app.get("/skillsCollection/user/:userId", async (req, res) => {
-  try {
-    const skills = await Skill.find({ userId: req.params.userId });
-    res.json(skills);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// READ Single Skill by ID
-app.get("/skillsCollection/:id", async (req, res) => {
-  try {
-    const skill = await Skill.findById(req.params.id).populate('userId');
-    if (!skill) return res.status(404).json({ error: "Skill not found" });
-    res.json(skill);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// UPDATE Skill
-app.put("/skillsCollection/:id", async (req, res) => {
-  try {
-    const updatedSkill = await Skill.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!updatedSkill) return res.status(404).json({ error: "Skill not found" });
-    res.json(updatedSkill);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// DELETE Skill
-app.delete("/skillsCollection/:id", async (req, res) => {
-  try {
-    const deletedSkill = await Skill.findByIdAndDelete(req.params.id);
-    if (!deletedSkill) return res.status(404).json({ error: "Skill not found" });
-    res.json({ message: "Skill deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Error fetching skills:", err);
+    res.status(500).json({ 
+      success: false, 
+      error: err.message 
+    });
   }
 });
 
