@@ -49,6 +49,22 @@ const User = mongoose.model("User", userSchema);      // Schema থেকে Mod
 
 // const Skill = mongoose.model("SkillCollection", skillSchema);
 
+// // Skill Schema
+// const skillSchema = new mongoose.Schema({
+//   name: { type: String, required: true },
+//   category: { type: String, required: true },
+//   proficiency: { 
+//     type: String, 
+//     enum: ['Beginner', 'Intermediate', 'Expert'], 
+//     default: 'Beginner' 
+//   },
+//   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+//   createdAt: { type: Date, default: Date.now }
+// });
+
+// // If you want collection name = "SkillCollection"
+// const Skill = mongoose.model("Skill", skillSchema, "SkillCollection");
+
 // Skill Schema
 const skillSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -62,8 +78,8 @@ const skillSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-// If you want collection name = "SkillCollection"
-const Skill = mongoose.model("Skill", skillSchema, "SkillCollection");
+// একটি Model রাখো (একটি line)
+const Skill = mongoose.model("Skill", skillSchema);
 
 
 
