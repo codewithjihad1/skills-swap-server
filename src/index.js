@@ -46,7 +46,7 @@ const skillSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-const Skill = mongoose.model("Skill", skillSchema);
+const Skill = mongoose.model("Skill", skillSchema, "skillsCollection");
 
 // ------------------- Routes -------------------
 
@@ -115,10 +115,10 @@ app.delete("/users/:id", async (req, res) => {
   }
 });
 
-// ------------------- SKILLS CRUD APIs -------------------
+// ------------------- SKILLS COLLECTION CRUD APIs -------------------
 
 // CREATE Skill
-app.post("/skills", async (req, res) => {
+app.post("/skillsCollection", async (req, res) => {
   try {
     const skill = new Skill(req.body);
     await skill.save();
@@ -129,7 +129,7 @@ app.post("/skills", async (req, res) => {
 });
 
 // READ All Skills
-app.get("/skills", async (req, res) => {
+app.get("/skillsCollection", async (req, res) => {
   try {
     const skills = await Skill.find().populate('userId', 'name email');
     res.json(skills);
@@ -139,7 +139,7 @@ app.get("/skills", async (req, res) => {
 });
 
 // READ Skills by User ID
-app.get("/skills/user/:userId", async (req, res) => {
+app.get("/skillsCollection/user/:userId", async (req, res) => {
   try {
     const skills = await Skill.find({ userId: req.params.userId });
     res.json(skills);
@@ -149,7 +149,7 @@ app.get("/skills/user/:userId", async (req, res) => {
 });
 
 // READ Single Skill by ID
-app.get("/skills/:id", async (req, res) => {
+app.get("/skillsCollection/:id", async (req, res) => {
   try {
     const skill = await Skill.findById(req.params.id).populate('userId');
     if (!skill) return res.status(404).json({ error: "Skill not found" });
@@ -160,7 +160,7 @@ app.get("/skills/:id", async (req, res) => {
 });
 
 // UPDATE Skill
-app.put("/skills/:id", async (req, res) => {
+app.put("/skillsCollection/:id", async (req, res) => {
   try {
     const updatedSkill = await Skill.findByIdAndUpdate(
       req.params.id,
@@ -175,7 +175,7 @@ app.put("/skills/:id", async (req, res) => {
 });
 
 // DELETE Skill
-app.delete("/skills/:id", async (req, res) => {
+app.delete("/skillsCollection/:id", async (req, res) => {
   try {
     const deletedSkill = await Skill.findByIdAndDelete(req.params.id);
     if (!deletedSkill) return res.status(404).json({ error: "Skill not found" });
