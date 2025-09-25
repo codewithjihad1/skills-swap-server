@@ -115,7 +115,7 @@ app.delete("/users/:id", async (req, res) => {
   }
 });
 
-// ------------------- SKILLS COLLECTION CRUD APIs -------------------
+
 
 // ------------------- SKILLS COLLECTION CRUD APIs -------------------
 
