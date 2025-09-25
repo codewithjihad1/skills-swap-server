@@ -24,46 +24,14 @@ mongoose.connect(process.env.MONGODB_URI)
     console.error("❌ Database connection error:", err);
   });
 
-
-
-
-// Example Schema & Model - ডাটাবেসের ডাটা স্ট্রাকচার ডিফাইন করা
+// User Schema
 const userSchema = new mongoose.Schema({             
-  name: { type: String, required: true },            // required name field
-  email: { type: String, required: true, unique: true }, // required and unique email field
-  createdAt: { type: Date, default: Date.now }       // required createdAt field with default value
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  createdAt: { type: Date, default: Date.now }
 });
 
-const User = mongoose.model("User", userSchema);      // Schema থেকে Model তৈরি ("User" নামে কালেকশন তৈরি হবে)
-
-
-
-// // User Schema এর পরে Skill Schema যোগ করো
-// const skillSchema = new mongoose.Schema({
-//   name: { type: String, required: true },
-//   category: { type: String, required: true },
-//   proficiency: { type: String, enum: ['Beginner', 'Intermediate', 'Expert'], default: 'Beginner' },
-//   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // কোন user এর skill
-//   createdAt: { type: Date, default: Date.now }
-// });
-
-// const Skill = mongoose.model("SkillCollection", skillSchema);
-
-// // Skill Schema
-// const skillSchema = new mongoose.Schema({
-//   name: { type: String, required: true },
-//   category: { type: String, required: true },
-//   proficiency: { 
-//     type: String, 
-//     enum: ['Beginner', 'Intermediate', 'Expert'], 
-//     default: 'Beginner' 
-//   },
-//   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-//   createdAt: { type: Date, default: Date.now }
-// });
-
-// // If you want collection name = "SkillCollection"
-// const Skill = mongoose.model("Skill", skillSchema, "SkillCollection");
+const User = mongoose.model("User", userSchema);
 
 // Skill Schema
 const skillSchema = new mongoose.Schema({
@@ -78,25 +46,18 @@ const skillSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-// একটি Model রাখো (একটি line)
 const Skill = mongoose.model("Skill", skillSchema);
-
-
-
-
-
-
 
 // ------------------- Routes -------------------
 
-// Root route - 
+// Root route
 app.get("/", (req, res) => {                          
   res.send("🚀 Server is running...");                
 });
 
-// ------------------- CRUD APIs -------------------
+// ------------------- USERS CRUD APIs -------------------
 
-// CREATE User (POST) - API
+// CREATE User
 app.post("/users", async (req, res) => {              
   try {                                               
     const user = new User(req.body);                  
@@ -107,7 +68,7 @@ app.post("/users", async (req, res) => {
   }
 });
 
-// READ All Users (GET) - API
+// READ All Users
 app.get("/users", async (req, res) => {              
   try {
     const users = await User.find();                 
@@ -117,7 +78,7 @@ app.get("/users", async (req, res) => {
   }
 });
 
-// READ Single User by ID (GET) - API
+// READ Single User by ID
 app.get("/users/:id", async (req, res) => {           
   try {
     const user = await User.findById(req.params.id);
@@ -128,7 +89,7 @@ app.get("/users/:id", async (req, res) => {
   }
 });
 
-// UPDATE User (PUT) - API
+// UPDATE User
 app.put("/users/:id", async (req, res) => {           
   try {
     const updatedUser = await User.findByIdAndUpdate( 
@@ -143,10 +104,10 @@ app.put("/users/:id", async (req, res) => {
   }
 });
 
-// DELETE User (DELETE) - API
+// DELETE User
 app.delete("/users/:id", async (req, res) => {        
   try {
-    const deletedUser = await User.findByIdAndDelete(req.params.id); // By Id deleted the user
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
     if (!deletedUser) return res.status(404).json({ error: "User not found" }); 
     res.json({ message: "User deleted successfully" }); 
   } catch (err) {
@@ -154,22 +115,9 @@ app.delete("/users/:id", async (req, res) => {
   }
 });
 
-// ------------------- End of USERS CRUD APIs -------------------
+// ------------------- SKILLS CRUD APIs -------------------
 
-
-// ------------------- Skills CRUD APIs -------------------
-
-// CREATE Skill (POST) - API
-// app.post("/skills", async (req, res) => {
-//   try {
-//     const skill = new Skill(req.body);
-//     await skill.save();
-//     res.status(201).json(skill);
-//   } catch (err) {
-//     res.status(400).json({ error: err.message });
-//   }
-// });
-
+// CREATE Skill
 app.post("/skills", async (req, res) => {
   try {
     const skill = new Skill(req.body);
@@ -180,17 +128,17 @@ app.post("/skills", async (req, res) => {
   }
 });
 
-// READ All Skills (GET) - API
+// READ All Skills
 app.get("/skills", async (req, res) => {
   try {
-    const skills = await Skill.find().populate('userId', 'name email'); // User information সহ
+    const skills = await Skill.find().populate('userId', 'name email');
     res.json(skills);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// READ Skills by User ID (GET) - API
+// READ Skills by User ID
 app.get("/skills/user/:userId", async (req, res) => {
   try {
     const skills = await Skill.find({ userId: req.params.userId });
@@ -200,7 +148,7 @@ app.get("/skills/user/:userId", async (req, res) => {
   }
 });
 
-// READ Single Skill by ID (GET) - API
+// READ Single Skill by ID
 app.get("/skills/:id", async (req, res) => {
   try {
     const skill = await Skill.findById(req.params.id).populate('userId');
@@ -211,7 +159,7 @@ app.get("/skills/:id", async (req, res) => {
   }
 });
 
-// UPDATE Skill (PUT) - API
+// UPDATE Skill
 app.put("/skills/:id", async (req, res) => {
   try {
     const updatedSkill = await Skill.findByIdAndUpdate(
@@ -226,7 +174,7 @@ app.put("/skills/:id", async (req, res) => {
   }
 });
 
-// DELETE Skill (DELETE) - API
+// DELETE Skill
 app.delete("/skills/:id", async (req, res) => {
   try {
     const deletedSkill = await Skill.findByIdAndDelete(req.params.id);
@@ -237,9 +185,7 @@ app.delete("/skills/:id", async (req, res) => {
   }
 });
 
-// ------------------- End of Skills CRUD APIs -------------------
-
-// Run Server - 
+// Run Server
 app.listen(port, () => {                              
   console.log(`🚀 Server is running on port ${port}`);
 });
