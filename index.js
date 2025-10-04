@@ -39,8 +39,6 @@ const connectDB = async () => {
 
 connectDB();
 
-// ------------------- Routes -------------------
-
 // Root route
 app.get("/", (req, res) => {
     res.status(200).json({
