@@ -61,7 +61,6 @@ app.get("/health", (req, res) => {
     });
 });
 
-
 // Mount all routes
 // app.use("/api/users", userRoutes);
 app.use("/api/skills", skillsRoutes);
