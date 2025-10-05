@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 // import routes
 // const userRoutes = require("./src/routes/usersRoute");
 const skillsRoutes = require("./src/routes/skillsRoute");
+const contactRoute = require("./src/routes/contactRoute"); 
 
 // Load .env file - environment variables
 dotenv.config();
@@ -47,6 +48,7 @@ app.get("/", (req, res) => {
         endpoints: {
             users: "/api/users",
             skills: "/api/skills",
+            contact: "/api/contact",
         },
     });
 });
@@ -62,9 +64,11 @@ app.get("/health", (req, res) => {
 });
 
 
+
 // Mount all routes
 // app.use("/api/users", userRoutes);
 app.use("/api/skills", skillsRoutes);
+app.use("/api", contactRoute); // ✅ যোগ করো
 
 // Run Server
 app.listen(port, () => {
