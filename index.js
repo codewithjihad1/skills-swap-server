@@ -11,10 +11,11 @@ const userRoutes = require("./src/routes/usersRoute");
 const skillsRoutes = require("./src/routes/skillsRoute");
 const messageRoutes = require("./src/routes/messageRoute");
 const notificationRoutes = require("./src/routes/notificationRoute");
+const swapRequestRoutes = require("./src/routes/swapRequestRoute");
 
 // import socket handler
 const socketHandler = require("./src/socket/socketHandler");
-const contactRoute = require("./src/routes/contactRoute"); 
+const contactRoute = require("./src/routes/contactRoute");
 
 // Load .env file - environment variables
 dotenv.config();
@@ -88,6 +89,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/skills", skillsRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/swap-requests", swapRequestRoutes);
 app.use("/api/contact", contactRoute); // ✅ যোগ করো
 
 // Run Server
