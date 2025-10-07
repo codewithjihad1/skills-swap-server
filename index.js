@@ -3,17 +3,39 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
+const http = require("http");
+const { Server } = require("socket.io");
 
 // import routes
-// const userRoutes = require("./src/routes/usersRoute");
+const userRoutes = require("./src/routes/usersRoute");
 const skillsRoutes = require("./src/routes/skillsRoute");
+const messageRoutes = require("./src/routes/messageRoute");
+const notificationRoutes = require("./src/routes/notificationRoute");
+const swapRequestRoutes = require("./src/routes/swapRequestRoute");
+
+// import socket handler
+const socketHandler = require("./src/socket/socketHandler");
+const contactRoute = require("./src/routes/contactRoute");
 
 // Load .env file - environment variables
 dotenv.config();
 
 // Express app init -
 const app = express();
+const server = http.createServer(app);
 const port = process.env.PORT || 5000;
+
+// Socket.IO initialization
+const io = new Server(server, {
+    cors: {
+        origin: process.env.CLIENT_URL || "http://localhost:3000",
+        methods: ["GET", "POST"],
+        credentials: true,
+    },
+});
+
+// Initialize socket handler
+socketHandler(io);
 
 // Enhanced Middleware -
 app.use(cors());
@@ -47,6 +69,7 @@ app.get("/", (req, res) => {
         endpoints: {
             users: "/api/users",
             skills: "/api/skills",
+            contact: "/api/contact",
         },
     });
 });
@@ -61,15 +84,19 @@ app.get("/health", (req, res) => {
     });
 });
 
-
 // Mount all routes
-// app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/skills", skillsRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/swap-requests", swapRequestRoutes);
+app.use("/api/contact", contactRoute); // ✅ যোগ করো
 
 // Run Server
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`🚀 Skills Swap API Server is running on port ${port}`);
     console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
     console.log(`🌐 API Base URL: http://localhost:${port}`);
+    console.log(`🔌 Socket.IO is enabled`);
     console.log(`📖 API Documentation: http://localhost:${port}/`);
 });
