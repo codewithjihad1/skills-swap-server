@@ -14,6 +14,7 @@ const notificationRoutes = require("./src/routes/notificationRoute");
 
 // import socket handler
 const socketHandler = require("./src/socket/socketHandler");
+const contactRoute = require("./src/routes/contactRoute"); 
 
 // Load .env file - environment variables
 dotenv.config();
@@ -67,6 +68,7 @@ app.get("/", (req, res) => {
         endpoints: {
             users: "/api/users",
             skills: "/api/skills",
+            contact: "/api/contact",
         },
     });
 });
@@ -86,6 +88,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/skills", skillsRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api", contactRoute); // ✅ যোগ করো
 
 // Run Server
 server.listen(port, () => {
