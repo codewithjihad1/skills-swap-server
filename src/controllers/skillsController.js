@@ -45,6 +45,16 @@ const skillsController = {
             res.status(500).json({ message: "Error fetching skills", error });
         }
     },
+    
+    // get skills by user ID
+    getSkillsByUserId: async (req, res) => {
+        try {
+            const skills = await Skill.find({ userId: req.params.id });
+            res.status(200).json(skills);
+        } catch (error) {
+            res.status(500).json({ message: "Error fetching skills", error });
+        }
+    },
 
     // Update a skill by ID
     updateSkill: async (req, res) => {

@@ -22,7 +22,6 @@ const userController = {
 
     // get user by email
     getUserByEmail: async (req, res) => {
-        console.log("🚀 ~ req:", req.params);
         try {
             const user = await User.findOne({ email: req.params.email })
                 .select("-password")
