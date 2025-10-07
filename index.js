@@ -88,7 +88,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/skills", skillsRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api", contactRoute); // ✅ যোগ করো
+app.use("/api/contact", contactRoute); // ✅ যোগ করো
 
 // Run Server
 server.listen(port, () => {
