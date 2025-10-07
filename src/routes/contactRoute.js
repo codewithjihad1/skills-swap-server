@@ -1,8 +1,8 @@
 // routes/contactRoute.js
 const express = require("express");
-const { sendMessage } = require("../controllers/contactController");
 const router = express.Router();
+const { sendMessage } = require("../controllers/contactController");
 
-router.post("/contact", sendMessage);
+router.post("/", sendMessage);
 
 module.exports = router;
