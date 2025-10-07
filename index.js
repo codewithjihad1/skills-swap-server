@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 
 // import routes
-// const userRoutes = require("./src/routes/usersRoute");
+const userRoutes = require("./src/routes/usersRoute");
 const skillsRoutes = require("./src/routes/skillsRoute");
 const contactRoute = require("./src/routes/contactRoute"); 
 
@@ -63,10 +63,8 @@ app.get("/health", (req, res) => {
     });
 });
 
-
-
 // Mount all routes
-// app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/skills", skillsRoutes);
 app.use("/api", contactRoute); // ✅ যোগ করো
 
