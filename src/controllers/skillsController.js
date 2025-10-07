@@ -1,11 +1,11 @@
-const Skills = require("../dbSchemas/skillSchema");
+const Skill = require("../dbSchemas/skillSchema");
 
 // controller functions
 const skillsController = {
     // post a new skill
     createSkill: async (req, res) => {
         try {
-            const newSkill = new Skills(req.body);
+            const newSkill = new Skill(req.body);
             const savedSkill = await newSkill.save();
             res.status(201).json(savedSkill);
         } catch (error) {
@@ -16,7 +16,7 @@ const skillsController = {
     // Get all skills
     getAllSkills: async (req, res) => {
         try {
-            const skills = await Skills.find();
+            const skills = await Skill.find();
             res.status(200).json(skills);
         } catch (error) {
             res.status(500).json({ message: "Error fetching skills", error });
@@ -26,7 +26,7 @@ const skillsController = {
     // Get a skill by ID
     getSkillById: async (req, res) => {
         try {
-            const skill = await Skills.findById(req.params.id);
+            const skill = await Skill.findById(req.params.id);
             if (!skill) {
                 return res.status(404).json({ message: "Skill not found" });
             }
@@ -39,7 +39,7 @@ const skillsController = {
     // get skills by user email
     getSkillsByUserEmail: async (req, res) => {
         try {
-            const skills = await Skills.find({ userEmail: req.params.email });
+            const skills = await Skill.find({ userEmail: req.params.email });
             res.status(200).json(skills);
         } catch (error) {
             res.status(500).json({ message: "Error fetching skills", error });
@@ -49,7 +49,7 @@ const skillsController = {
     // Update a skill by ID
     updateSkill: async (req, res) => {
         try {
-            const skill = await Skills.findByIdAndUpdate(
+            const skill = await Skill.findByIdAndUpdate(
                 req.params.id,
                 req.body,
                 { new: true }
@@ -66,7 +66,7 @@ const skillsController = {
     // Delete a skill by ID
     deleteSkill: async (req, res) => {
         try {
-            const skill = await Skills.findByIdAndDelete(req.params.id);
+            const skill = await Skill.findByIdAndDelete(req.params.id);
             if (!skill) {
                 return res.status(404).json({ message: "Skill not found" });
             }

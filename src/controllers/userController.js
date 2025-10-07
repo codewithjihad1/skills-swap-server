@@ -1,3 +1,6 @@
+const User = require("../dbSchemas/userShema.js");
+const Skill = require("../dbSchemas/skillSchema.js");
+
 const userController = {
     getUserProfile: (req, res) => {
         const userId = req.params.id;
@@ -15,6 +18,26 @@ const userController = {
                 console.error("Error fetching user profile:", err);
                 res.status(500).json({ error: "Internal server error" });
             });
+    },
+
+    // get user by email
+    getUserByEmail: async (req, res) => {
+        console.log("🚀 ~ req:", req.params);
+        try {
+            const user = await User.findOne({ email: req.params.email })
+                .select("-password")
+                .populate(
+                    "skills",
+                    "title category proficiency description tags"
+                );
+            if (!user) {
+                return res.status(404).json({ error: "User not found" });
+            }
+            res.status(200).json(user);
+        } catch (err) {
+            console.error("Error fetching user by email:", err);
+            res.status(500).json({ error: "Internal server error" });
+        }
     },
 
     // create user
@@ -62,6 +85,7 @@ const userController = {
                     "skills",
                     "title category proficiency description tags"
                 );
+            console.log("🚀 ~ user:", user);
 
             if (!user) {
                 return res.status(404).json({ error: "User not found" });
