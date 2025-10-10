@@ -1,6 +1,7 @@
 const SwapRequest = require("../dbSchemas/swapRequestSchema");
 const Notification = require("../dbSchemas/notificationSchema");
 const Skill = require("../dbSchemas/skillSchema");
+const mongoose = require("mongoose");
 
 // Create a new swap request
 exports.createSwapRequest = async (req, res) => {
@@ -358,8 +359,8 @@ exports.getSwapRequestStats = async (req, res) => {
             {
                 $match: {
                     $or: [
-                        { requester: mongoose.Types.ObjectId(userId) },
-                        { skillProvider: mongoose.Types.ObjectId(userId) },
+                        { requester: new mongoose.Types.ObjectId(userId) },
+                        { skillProvider: new mongoose.Types.ObjectId(userId) },
                     ],
                 },
             },
