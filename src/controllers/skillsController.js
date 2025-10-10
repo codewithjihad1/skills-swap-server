@@ -37,19 +37,19 @@ const skillsController = {
     },
 
     // get skills by user email
-    getSkillsByUserEmail: async (req, res) => {
-        try {
-            const skills = await Skill.find({ userEmail: req.params.email });
-            res.status(200).json(skills);
-        } catch (error) {
-            res.status(500).json({ message: "Error fetching skills", error });
-        }
-    },
+    // getSkillsByUserEmail: async (req, res) => {
+    //     try {
+    //         const skills = await Skill.find({ userEmail: req.params.email });
+    //         res.status(200).json(skills);
+    //     } catch (error) {
+    //         res.status(500).json({ message: "Error fetching skills", error });
+    //     }
+    // },
     
     // get skills by user ID
     getSkillsByUserId: async (req, res) => {
         try {
-            const skills = await Skill.find({ userId: req.params.id });
+            const skills = await Skill.find({ offeredBy: req.params.id });
             res.status(200).json(skills);
         } catch (error) {
             res.status(500).json({ message: "Error fetching skills", error });
