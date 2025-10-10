@@ -105,8 +105,8 @@ const userController = {
     // update user by id
     updateUser: async (req, res) => {
         try {
-            const { name, bio, avatar } = req.body;
-            const updateData = { name, bio, avatar, updatedAt: Date.now() };
+            const { name, bio, image } = req.body;
+            const updateData = { name, bio, image, updatedAt: Date.now() };
 
             const user = await User.findByIdAndUpdate(
                 req.params.id,
