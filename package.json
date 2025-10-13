@@ -19,6 +19,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google-apps/meet": "^0.7.0",
+    "@google-cloud/local-auth": "^2.1.0",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.2",

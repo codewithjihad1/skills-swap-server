@@ -1,6 +1,7 @@
 const Session = require("../models/Session");
 const SwapRequest = require("../dbSchemas/swapRequestSchema");
 const googleCalendarService = require("../services/googleCalendarService");
+const googleMeetService = require("../services/googleMeetService");
 
 /**
  * @route   POST /api/sessions/schedule
@@ -53,24 +54,17 @@ const scheduleSession = async (req, res) => {
 
         const eventDetails = {
             summary: `Skill Exchange: ${swapRequest.skillRequested.title}`,
-            description: `
-Skill Exchange Session
-
-Requester: ${swapRequest.requester.name}
-Provider: ${swapRequest.skillProvider.name}
-
-Skill to Learn: ${swapRequest.skillRequested.title} (${
-                swapRequest.skillRequested.category
-            })
-${
-    swapRequest.skillOffered
-        ? `Skill to Teach: ${swapRequest.skillOffered.title} (${swapRequest.skillOffered.category})`
-        : ""
-}
-
-${notes ? `Notes: ${notes}` : ""}
-
-This session was scheduled through Skills Swap platform.
+            description: `Skill Exchange Session Requester: ${
+                swapRequest.requester.name
+            } Provider: ${swapRequest.skillProvider.name}Skill to Learn: ${
+                swapRequest.skillRequested.title
+            } (${swapRequest.skillRequested.category}) ${
+                swapRequest.skillOffered
+                    ? `Skill to Teach: ${swapRequest.skillOffered.title} (${swapRequest.skillOffered.category})`
+                    : ""
+            }${
+                notes ? `Notes: ${notes}` : ""
+            } This session was scheduled through Skills Swap platform.
             `.trim(),
             startDateTime: startDateTime.toISOString(),
             endDateTime: endDateTime.toISOString(),
@@ -81,61 +75,80 @@ This session was scheduled through Skills Swap platform.
             timeZone,
         };
 
-        // Create Google Calendar event (with fallback mode)
+        // Create Google Meet link and Calendar event
+        let meetingDetails;
         let calendarEvent;
 
         // Check if valid Google credentials are configured
-        const hasValidCredentials =
-            process.env.GOOGLE_REFRESH_TOKEN &&
-            process.env.GOOGLE_REFRESH_TOKEN !== "mock" &&
-            process.env.GOOGLE_REFRESH_TOKEN !== "your_refresh_token_here";
-
+        const hasValidCredentials = googleMeetService.hasValidCredentials();
+        // If not, return an error response
         if (!hasValidCredentials) {
-            // FALLBACK MODE: Create session without real Google Calendar
+            return res.status(500).json({
+                error: "Google OAuth not configured. Cannot create Meet link.",
+            });
+        }
+
+        try {
+            console.log("🎥 Creating real Google Meet space...");
+
+            // Initialize services
+            googleMeetService.initializeClient();
+            googleCalendarService.initializeClient();
+
+            // Create Google Meet space first
+            meetingDetails = await googleMeetService.createMeetingSpace({
+                title: eventDetails.summary,
+                description: eventDetails.description,
+                startTime: startDateTime,
+                endTime: endDateTime,
+            });
+
             console.log(
-                "⚠️  Running in FALLBACK MODE - No valid Google refresh token"
+                "✅ Google Meet space created:",
+                meetingDetails.meetingUri
             );
-            console.log("💡 Session will be created with mock Meet link");
-            console.log(
-                "📖 To enable real Google Calendar, see: QUICK_SETUP_GOOGLE_CALENDAR.md"
+
+            // Add the Meet link to calendar event
+            eventDetails.conferenceData = {
+                entryPoints: [
+                    {
+                        entryPointType: "video",
+                        uri: meetingDetails.meetingUri,
+                        label: meetingDetails.meetingCode,
+                    },
+                ],
+                conferenceSolution: {
+                    key: {
+                        type: "hangoutsMeet",
+                    },
+                    name: "Google Meet",
+                    iconUri:
+                        "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+                },
+            };
+
+            // Create calendar event with Meet link
+            calendarEvent = await googleCalendarService.createEvent(
+                eventDetails
             );
+
+            console.log("✅ Calendar event created with Meet link");
+        } catch (error) {
+            console.error(
+                "❌ Error creating Google Meet/Calendar:",
+                error.message
+            );
+            console.log("⚠️  Falling back to mock mode...");
+
+            // Fallback if Google services fail
+            meetingDetails = await googleMeetService.generateMeetLink();
 
             calendarEvent = {
-                eventId: `fallback-${Date.now()}-${Math.random()
-                    .toString(36)
-                    .substr(2, 9)}`,
+                eventId: `fallback-error-${Date.now()}`,
                 htmlLink: `https://calendar.google.com/calendar/event?eid=fallback`,
-                meetLink: `https://meet.google.com/fallback-${Date.now().toString(
-                    36
-                )}`,
+                meetLink: meetingDetails.meetLink,
                 status: "confirmed",
             };
-        } else {
-            // REAL MODE: Try to create actual Google Calendar event
-            try {
-                calendarEvent = await googleCalendarService.createEvent(
-                    eventDetails
-                );
-                console.log(
-                    "✅ Real Google Calendar event created successfully"
-                );
-            } catch (calendarError) {
-                console.error(
-                    "❌ Google Calendar API error:",
-                    calendarError.message
-                );
-                console.log("⚠️  Falling back to mock mode...");
-
-                // Fallback if Google Calendar fails
-                calendarEvent = {
-                    eventId: `fallback-error-${Date.now()}`,
-                    htmlLink: `https://calendar.google.com/calendar/event?eid=fallback`,
-                    meetLink: `https://meet.google.com/fallback-${Date.now().toString(
-                        36
-                    )}`,
-                    status: "confirmed",
-                };
-            }
         }
 
         // Create session in database
@@ -157,7 +170,12 @@ This session was scheduled through Skills Swap platform.
             ],
             scheduledDate: startDateTime,
             duration,
-            meetingLink: calendarEvent.meetLink,
+            meetingLink: meetingDetails.meetLink,
+            googleMeet: {
+                spaceId: meetingDetails.spaceId,
+                meetingCode: meetingDetails.meetingCode,
+                isMock: meetingDetails.isMock || false,
+            },
             googleCalendar: {
                 eventId: calendarEvent.eventId,
                 htmlLink: calendarEvent.htmlLink,
@@ -187,6 +205,7 @@ This session was scheduled through Skills Swap platform.
                 scheduledDate: session.scheduledDate,
                 duration: session.duration,
                 meetingLink: session.meetingLink,
+                meetingCode: meetingDetails.meetingCode,
                 calendarLink: session.googleCalendar.htmlLink,
                 status: session.status,
             },
@@ -343,11 +362,32 @@ const cancelSession = async (req, res) => {
             return res.status(404).json({ error: "Session not found" });
         }
 
-        // Initialize Google Calendar service
+        // Initialize services
         googleCalendarService.initializeClient();
+        googleMeetService.initializeClient();
 
         // Delete Google Calendar event
-        await googleCalendarService.deleteEvent(session.googleCalendar.eventId);
+        try {
+            await googleCalendarService.deleteEvent(
+                session.googleCalendar.eventId
+            );
+        } catch (error) {
+            console.warn("⚠️  Failed to delete calendar event:", error.message);
+        }
+
+        // End Google Meet space if it's a real meeting (not mock)
+        if (session.googleMeet?.spaceId && !session.googleMeet?.isMock) {
+            try {
+                await googleMeetService.endMeetingSpace(
+                    session.googleMeet.spaceId
+                );
+            } catch (error) {
+                console.warn(
+                    "⚠️  Failed to end Google Meet space:",
+                    error.message
+                );
+            }
+        }
 
         // Update session in database
         session.status = "cancelled";
@@ -413,12 +453,14 @@ const completeSession = async (req, res) => {
  */
 const getGoogleAuthUrl = async (req, res) => {
     try {
-        googleCalendarService.initializeClient();
-        const authUrl = googleCalendarService.getAuthUrl();
+        googleMeetService.initializeClient();
+        const authUrl = googleMeetService.getAuthUrl();
 
         res.status(200).json({
             success: true,
             authUrl,
+            message:
+                "Visit this URL to authorize Google Calendar and Meet access",
         });
     } catch (error) {
         console.error("Error getting auth URL:", error);
@@ -444,15 +486,22 @@ const handleGoogleCallback = async (req, res) => {
                 .json({ error: "Authorization code is required" });
         }
 
-        googleCalendarService.initializeClient();
-        const tokens = await googleCalendarService.getTokenFromCode(code);
+        googleMeetService.initializeClient();
+        const tokens = await googleMeetService.getTokenFromCode(code);
 
         res.status(200).json({
             success: true,
-            message: "Authorization successful",
+            message:
+                "Authorization successful! Add this refresh token to your .env file as GOOGLE_REFRESH_TOKEN",
             tokens: {
                 refresh_token: tokens.refresh_token,
             },
+            instructions: [
+                "1. Copy the refresh_token value above",
+                "2. Add to .env: GOOGLE_REFRESH_TOKEN=your_refresh_token_here",
+                "3. Restart your server",
+                "4. Now you can create real Google Meet links!",
+            ],
         });
     } catch (error) {
         console.error("Error handling callback:", error);

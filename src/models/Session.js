@@ -46,6 +46,14 @@ const sessionSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        googleMeet: {
+            spaceId: String, // Google Meet space ID (e.g., "spaces/abc-def-ghi")
+            meetingCode: String, // Meeting code (e.g., "abc-defg-hij")
+            isMock: {
+                type: Boolean,
+                default: false,
+            },
+        },
         googleCalendar: {
             eventId: {
                 type: String,
