@@ -12,6 +12,7 @@ const skillsRoutes = require("./src/routes/skillsRoute");
 const messageRoutes = require("./src/routes/messageRoute");
 const notificationRoutes = require("./src/routes/notificationRoute");
 const swapRequestRoutes = require("./src/routes/swapRequestRoute");
+const sessionRoutes = require("./src/routes/sessionRoute");
 
 // import socket handler
 const socketHandler = require("./src/socket/socketHandler");
@@ -70,6 +71,10 @@ app.get("/", (req, res) => {
             users: "/api/users",
             skills: "/api/skills",
             contact: "/api/contact",
+            messages: "/api/messages",
+            notifications: "/api/notifications",
+            swapRequests: "/api/swap-requests",
+            sessions: "/api/sessions",
         },
     });
 });
@@ -90,7 +95,8 @@ app.use("/api/skills", skillsRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/swap-requests", swapRequestRoutes);
-app.use("/api/contact", contactRoute); // ✅ যোগ করো
+app.use("/api/sessions", sessionRoutes);
+app.use("/api/contact", contactRoute);
 
 // Run Server
 server.listen(port, () => {
