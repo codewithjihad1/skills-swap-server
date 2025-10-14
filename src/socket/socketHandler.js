@@ -1,3 +1,5 @@
+// src/socket/socketHandler.js - COMPLETE UPDATED VERSION
+
 const Message = require("../dbSchemas/messageSchema");
 const Notification = require("../dbSchemas/notificationSchema");
 const User = require("../dbSchemas/userShema");
@@ -17,6 +19,9 @@ const socketHandler = (io) => {
 
                 // Update user online status
                 await User.findByIdAndUpdate(userId, { isOnline: true });
+
+                // ✅ NEW: Join notification room automatically
+                socket.join(`notifications_${userId}`);
 
                 // Notify all users about online status
                 io.emit("user:online", { userId, socketId: socket.id });
@@ -38,6 +43,8 @@ const socketHandler = (io) => {
                     messages: unreadMessages,
                     notifications: unreadNotifications,
                 });
+
+                console.log(`🔔 User ${userId} joined notification room`);
             } catch (error) {
                 console.error("Error in user:join:", error);
             }
@@ -57,6 +64,161 @@ const socketHandler = (io) => {
             console.log(
                 `👋 Socket ${socket.id} left conversation ${conversationId}`
             );
+        });
+
+        // ✅ NEW: Join specific notification room (extra security)
+        socket.on("notification:join", (userId) => {
+            socket.join(`notifications_${userId}`);
+            console.log(`🔔 User ${userId} joined notification room specifically`);
+        });
+
+        // ✅ NEW: Leave notification room  
+        socket.on("notification:leave", (userId) => {
+            socket.leave(`notifications_${userId}`);
+            console.log(`🔔 User ${userId} left notification room`);
+        });
+
+        // ✅ NEW: Mark notification as read via socket
+        socket.on("notification:mark-read", async (data) => {
+            try {
+                const { notificationId, userId } = data;
+
+                console.log(`📨 Marking notification ${notificationId} as read for user ${userId}`);
+
+                const notification = await Notification.findByIdAndUpdate(
+                    notificationId,
+                    {
+                        isRead: true,
+                        readAt: new Date(),
+                    },
+                    { new: true }
+                ).populate("sender", "name email avatar");
+
+                if (notification) {
+                    // Send confirmation to user
+                    socket.emit("notification:read-confirm", {
+                        notificationId,
+                        success: true
+                    });
+
+                    // Update unread count for user
+                    const unreadCount = await Notification.countDocuments({
+                        recipient: userId,
+                        isRead: false,
+                    });
+
+                    // Send to all sockets of this user
+                    io.to(`notifications_${userId}`).emit("notification:unread-count", {
+                        count: unreadCount
+                    });
+
+                    console.log(`✅ Notification ${notificationId} marked as read. Unread count: ${unreadCount}`);
+                } else {
+                    socket.emit("notification:error", {
+                        error: "Notification not found"
+                    });
+                }
+            } catch (error) {
+                console.error("Error in notification:mark-read:", error);
+                socket.emit("notification:error", {
+                    error: "Failed to mark notification as read"
+                });
+            }
+        });
+
+        // ✅ NEW: Mark all notifications as read
+        socket.on("notification:mark-all-read", async (data) => {
+            try {
+                const { userId } = data;
+
+                console.log(`📨 Marking all notifications as read for user ${userId}`);
+
+                const result = await Notification.updateMany(
+                    { recipient: userId, isRead: false },
+                    {
+                        isRead: true,
+                        readAt: new Date(),
+                    }
+                );
+
+                // Send confirmation
+                socket.emit("notification:all-read-confirm", {
+                    success: true,
+                    modifiedCount: result.modifiedCount
+                });
+
+                // Update unread count to 0
+                io.to(`notifications_${userId}`).emit("notification:unread-count", {
+                    count: 0
+                });
+
+                console.log(`✅ All notifications (${result.modifiedCount}) marked as read for user ${userId}`);
+            } catch (error) {
+                console.error("Error in notification:mark-all-read:", error);
+                socket.emit("notification:error", {
+                    error: "Failed to mark all notifications as read"
+                });
+            }
+        });
+
+        // ✅ NEW: Delete notification via socket
+        socket.on("notification:delete", async (data) => {
+            try {
+                const { notificationId, userId } = data;
+
+                console.log(`🗑️ Deleting notification ${notificationId} for user ${userId}`);
+
+                const notification = await Notification.findByIdAndDelete(notificationId);
+
+                if (notification) {
+                    // Send confirmation to user
+                    socket.emit("notification:delete-confirm", {
+                        notificationId,
+                        success: true
+                    });
+
+                    // Update unread count if notification was unread
+                    if (!notification.isRead) {
+                        const unreadCount = await Notification.countDocuments({
+                            recipient: userId,
+                            isRead: false,
+                        });
+
+                        io.to(`notifications_${userId}`).emit("notification:unread-count", {
+                            count: unreadCount
+                        });
+                    }
+
+                    console.log(`✅ Notification ${notificationId} deleted successfully`);
+                } else {
+                    socket.emit("notification:error", {
+                        error: "Notification not found for deletion"
+                    });
+                }
+            } catch (error) {
+                console.error("Error in notification:delete:", error);
+                socket.emit("notification:error", {
+                    error: "Failed to delete notification"
+                });
+            }
+        });
+
+        // ✅ NEW: Request current unread count
+        socket.on("notification:get-unread-count", async (userId) => {
+            try {
+                const unreadCount = await Notification.countDocuments({
+                    recipient: userId,
+                    isRead: false,
+                });
+
+                socket.emit("notification:unread-count", {
+                    count: unreadCount
+                });
+
+                console.log(`📊 Sent unread count ${unreadCount} to user ${userId}`);
+            } catch (error) {
+                console.error("Error in notification:get-unread-count:", error);
+            }
         });
 
         // Send message
@@ -187,7 +349,7 @@ const socketHandler = (io) => {
             }
         });
 
-        // Send notification
+        // Send notification (existing - keep this)
         socket.on("notification:send", async (data) => {
             try {
                 const {
@@ -239,7 +401,7 @@ const socketHandler = (io) => {
             }
         });
 
-        // Mark notification as read
+        // Mark notification as read (existing - keep this)
         socket.on("notification:read", async (data) => {
             try {
                 const { notificationId, userId } = data;
@@ -273,6 +435,9 @@ const socketHandler = (io) => {
             if (socket.userId) {
                 onlineUsers.delete(socket.userId);
 
+                // ✅ NEW: Leave notification room
+                socket.leave(`notifications_${socket.userId}`);
+
                 // Update user online status
                 await User.findByIdAndUpdate(socket.userId, {
                     isOnline: false,
@@ -282,13 +447,49 @@ const socketHandler = (io) => {
                 // Notify all users about offline status
                 io.emit("user:offline", { userId: socket.userId });
 
-                console.log(`❌ User ${socket.userId} disconnected`);
+                console.log(`❌ User ${socket.userId} disconnected from notification room`);
             }
             console.log(`🔌 Socket disconnected: ${socket.id}`);
         });
     });
 
-    return io;
+    // ✅ NEW: Helper function to send real-time notifications from anywhere
+    const sendRealTimeNotification = async (notificationData) => {
+        try {
+            console.log(`🔔 Sending real-time notification to ${notificationData.recipient}`);
+
+            const notification = new Notification(notificationData);
+            await notification.save();
+            await notification.populate("sender", "name email avatar");
+
+            // Send to specific user's notification room
+            io.to(`notifications_${notificationData.recipient}`).emit(
+                "notification:new",
+                notification
+            );
+
+            // Update unread count
+            const unreadCount = await Notification.countDocuments({
+                recipient: notificationData.recipient,
+                isRead: false,
+            });
+
+            io.to(`notifications_${notificationData.recipient}`).emit(
+                "notification:unread-count",
+                { count: unreadCount }
+            );
+
+            console.log(`✅ Real-time notification sent to ${notificationData.recipient}. Unread count: ${unreadCount}`);
+            return notification;
+        } catch (error) {
+            console.error("❌ Error sending real-time notification:", error);
+            throw error;
+        }
+    };
+
+    return {
+        sendRealTimeNotification
+    };
 };
 
 module.exports = socketHandler;
