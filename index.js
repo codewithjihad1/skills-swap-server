@@ -1,3 +1,5 @@
+// src/index.js
+
 // External Packages -
 const express = require("express");
 const cors = require("cors");
@@ -13,6 +15,8 @@ const messageRoutes = require("./src/routes/messageRoute");
 const notificationRoutes = require("./src/routes/notificationRoute");
 const swapRequestRoutes = require("./src/routes/swapRequestRoute");
 const sessionRoutes = require("./src/routes/sessionRoute");
+const courseRoutes = require("./src/routes/courseRoute");
+const enrollmentRoutes = require("./src/routes/enrollmentRoute");
 
 // import socket handler
 const socketHandler = require("./src/socket/socketHandler");
@@ -75,6 +79,8 @@ app.get("/", (req, res) => {
             notifications: "/api/notifications",
             swapRequests: "/api/swap-requests",
             sessions: "/api/sessions",
+            courses: "/api/courses",
+            enrollments: "/api/enrollments",
         },
     });
 });
@@ -97,6 +103,8 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/swap-requests", swapRequestRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/contact", contactRoute);
+app.use("/api/courses", courseRoutes);
+app.use("/api/enrollments", enrollmentRoutes);
 
 // Run Server
 server.listen(port, () => {
