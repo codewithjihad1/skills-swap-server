@@ -49,6 +49,29 @@ const userSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
+        role: {
+            type: String,
+            enum: ["student", "instructor", "admin"],
+            default: "student",
+        },
+        rating: {
+            type: Number,
+            min: 0,
+            max: 5,
+            default: 0,
+        },
+        skillOffered: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Skill",
+            },
+        ],
+        skillWanted: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Skill",
+            },
+        ],
     },
     {
         timestamps: true, // This automatically creates createdAt and updatedAt
