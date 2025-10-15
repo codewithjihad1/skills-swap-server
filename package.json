@@ -21,14 +21,16 @@
   "dependencies": {
     "@google-apps/meet": "^0.7.0",
     "@google-cloud/local-auth": "^2.1.0",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
-    "dotenv": "^17.2.2",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "googleapis": "^162.0.0",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.19.0",
-    "mongoose": "^8.18.2",
-    "nodemailer": "^7.0.6",
+    "mongoose": "^8.19.1",
+    "nodemailer": "^7.0.9",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
