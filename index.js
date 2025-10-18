@@ -18,6 +18,8 @@ const sessionRoutes = require("./src/routes/sessionRoute");
 const courseRoutes = require("./src/routes/courseRoute");
 const enrollmentRoutes = require("./src/routes/enrollmentRoute");
 const statsRoutes = require("./src/routes/statsRoute");
+const bkashRoutes = require("./src/routes/bkashRoute");
+const paymentRoutes = require("./src/routes/paymentRoute");
 
 // import socket handler
 const socketHandler = require("./src/socket/socketHandler");
@@ -83,6 +85,8 @@ app.get("/", (req, res) => {
             courses: "/api/courses",
             enrollments: "/api/enrollments",
             stats: "/api/stats",
+            bkash: "/api/bkash",
+            payments: "/api/payments",
         },
     });
 });
@@ -108,6 +112,8 @@ app.use("/api/contact", contactRoute);
 app.use("/api/courses", courseRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/stats", statsRoutes);
+app.use("/api/bkash", bkashRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // Run Server
 server.listen(port, () => {
