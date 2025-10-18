@@ -17,6 +17,7 @@ const swapRequestRoutes = require("./src/routes/swapRequestRoute");
 const sessionRoutes = require("./src/routes/sessionRoute");
 const courseRoutes = require("./src/routes/courseRoute");
 const enrollmentRoutes = require("./src/routes/enrollmentRoute");
+const statsRoutes = require("./src/routes/statsRoute");
 
 // import socket handler
 const socketHandler = require("./src/socket/socketHandler");
@@ -81,6 +82,7 @@ app.get("/", (req, res) => {
             sessions: "/api/sessions",
             courses: "/api/courses",
             enrollments: "/api/enrollments",
+            stats: "/api/stats",
         },
     });
 });
@@ -105,6 +107,7 @@ app.use("/api/sessions", sessionRoutes);
 app.use("/api/contact", contactRoute);
 app.use("/api/courses", courseRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
+app.use("/api/stats", statsRoutes);
 
 // Run Server
 server.listen(port, () => {
