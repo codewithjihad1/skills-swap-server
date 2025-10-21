@@ -16,7 +16,35 @@ const skillsController = {
     // Get all skills
     getAllSkills: async (req, res) => {
         try {
-            const skills = await Skill.find();
+            const { search, category, proficiency } = req.query;
+
+            // Build query object
+            let query = {};
+
+            // Add search filter (searches in title, description, and tags)
+            if (search) {
+                query.$or = [
+                    { title: { $regex: search, $options: "i" } },
+                    { description: { $regex: search, $options: "i" } },
+                    { tags: { $in: [new RegExp(search, "i")] } },
+                ];
+            }
+
+            // Add category filter
+            if (category && category !== "All") {
+                query.category = category;
+            }
+
+            // Add proficiency filter
+            if (proficiency && proficiency !== "All") {
+                query.proficiency = proficiency;
+            }
+
+            // Fetch skills with filters and populate user data
+            const skills = await Skill.find(query)
+                .populate("offeredBy", "name email avatar")
+                .sort({ createdAt: -1 });
+
             res.status(200).json(skills);
         } catch (error) {
             res.status(500).json({ message: "Error fetching skills", error });
@@ -45,7 +73,7 @@ const skillsController = {
     //         res.status(500).json({ message: "Error fetching skills", error });
     //     }
     // },
-    
+
     // get skills by user ID
     getSkillsByUserId: async (req, res) => {
         try {
