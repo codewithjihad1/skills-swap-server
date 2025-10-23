@@ -1,6 +1,6 @@
 // src/controllers/lessonController.js
 const Lesson = require("../dbSchemas/lessonSchema");
-const Course = require("../dbSchemas/courseSchema");
+const Course = require("../models/Course");
 
 const lessonController = {
     // ✅ POST /api/lessons - Add a new lesson to a course (instructor only)
@@ -18,14 +18,14 @@ const lessonController = {
                 prerequisites,
                 learningObjectives,
                 tags,
-                isPublished
+                isPublished,
             } = req.body;
 
             // ✅ Validation
             if (!title || !content || !courseId || !order) {
                 return res.status(400).json({
                     success: false,
-                    error: "Title, content, courseId, and order are required"
+                    error: "Title, content, courseId, and order are required",
                 });
             }
 
@@ -34,20 +34,20 @@ const lessonController = {
             if (!course) {
                 return res.status(404).json({
                     success: false,
-                    error: "Course not found"
+                    error: "Course not found",
                 });
             }
 
             // ✅ Check if order already exists in this course
             const existingLesson = await Lesson.findOne({
                 course: courseId,
-                order: order
+                order: order,
             });
 
             if (existingLesson) {
                 return res.status(400).json({
                     success: false,
-                    error: `A lesson already exists at order position ${order} in this course`
+                    error: `A lesson already exists at order position ${order} in this course`,
                 });
             }
 
@@ -65,7 +65,7 @@ const lessonController = {
                 resources: resources || [],
                 prerequisites: prerequisites || [],
                 learningObjectives: learningObjectives || [],
-                tags: tags || []
+                tags: tags || [],
             });
 
             await lesson.save();
@@ -75,36 +75,35 @@ const lessonController = {
             // ✅ Add lesson to course's lessons array
             await Course.findByIdAndUpdate(courseId, {
                 $push: { lessons: lesson._id },
-                $inc: { lessonCount: 1 } // Optional: if you add lessonCount field
+                $inc: { lessonCount: 1 }, // Optional: if you add lessonCount field
             });
 
             res.status(201).json({
                 success: true,
                 message: "Lesson created successfully",
-                lesson
+                lesson,
             });
-
         } catch (error) {
             console.error("Error creating lesson:", error);
-            
+
             if (error.code === 11000) {
                 return res.status(400).json({
                     success: false,
-                    error: "Duplicate lesson order in this course"
+                    error: "Duplicate lesson order in this course",
                 });
             }
-            
+
             if (error.name === "ValidationError") {
                 return res.status(400).json({
                     success: false,
                     error: "Validation error",
-                    details: Object.values(error.errors).map(e => e.message)
+                    details: Object.values(error.errors).map((e) => e.message),
                 });
             }
-            
+
             res.status(500).json({
                 success: false,
-                error: "Internal server error"
+                error: "Internal server error",
             });
         }
     },
@@ -113,12 +112,13 @@ const lessonController = {
     getLessonsByCourse: async (req, res) => {
         try {
             const { courseId } = req.params;
-            const { publishedOnly = "false", includeContent = "false" } = req.query;
+            const { publishedOnly = "false", includeContent = "false" } =
+                req.query;
 
             if (!courseId) {
                 return res.status(400).json({
                     success: false,
-                    error: "Course ID is required"
+                    error: "Course ID is required",
                 });
             }
 
@@ -127,7 +127,7 @@ const lessonController = {
             if (!course) {
                 return res.status(404).json({
                     success: false,
-                    error: "Course not found"
+                    error: "Course not found",
                 });
             }
 
@@ -152,7 +152,7 @@ const lessonController = {
             const total = await Lesson.countDocuments(query);
             const publishedCount = await Lesson.countDocuments({
                 course: courseId,
-                isPublished: true
+                isPublished: true,
             });
 
             res.status(200).json({
@@ -160,21 +160,20 @@ const lessonController = {
                 course: {
                     _id: course._id,
                     title: course.title,
-                    description: course.description
+                    description: course.description,
                 },
                 lessons,
                 counts: {
                     total,
                     published: publishedCount,
-                    draft: total - publishedCount
-                }
+                    draft: total - publishedCount,
+                },
             });
-
         } catch (error) {
             console.error("Error fetching lessons:", error);
             res.status(500).json({
                 success: false,
-                error: "Internal server error"
+                error: "Internal server error",
             });
         }
     },
@@ -187,7 +186,7 @@ const lessonController = {
             if (!id) {
                 return res.status(400).json({
                     success: false,
-                    error: "Lesson ID is required"
+                    error: "Lesson ID is required",
                 });
             }
 
@@ -199,28 +198,27 @@ const lessonController = {
             if (!lesson) {
                 return res.status(404).json({
                     success: false,
-                    error: "Lesson not found"
+                    error: "Lesson not found",
                 });
             }
 
             res.status(200).json({
                 success: true,
-                lesson
+                lesson,
             });
-
         } catch (error) {
             console.error("Error fetching lesson:", error);
-            
+
             if (error.name === "CastError") {
                 return res.status(400).json({
                     success: false,
-                    error: "Invalid lesson ID format"
+                    error: "Invalid lesson ID format",
                 });
             }
-            
+
             res.status(500).json({
                 success: false,
-                error: "Internal server error"
+                error: "Internal server error",
             });
         }
     },
@@ -234,7 +232,7 @@ const lessonController = {
             if (!id) {
                 return res.status(400).json({
                     success: false,
-                    error: "Lesson ID is required"
+                    error: "Lesson ID is required",
                 });
             }
 
@@ -243,7 +241,7 @@ const lessonController = {
             if (!lesson) {
                 return res.status(404).json({
                     success: false,
-                    error: "Lesson not found"
+                    error: "Lesson not found",
                 });
             }
 
@@ -252,13 +250,13 @@ const lessonController = {
                 const existingLesson = await Lesson.findOne({
                     course: lesson.course,
                     order: updateData.order,
-                    _id: { $ne: id } // Exclude current lesson
+                    _id: { $ne: id }, // Exclude current lesson
                 });
 
                 if (existingLesson) {
                     return res.status(400).json({
                         success: false,
-                        error: `A lesson already exists at order position ${updateData.order} in this course`
+                        error: `A lesson already exists at order position ${updateData.order} in this course`,
                     });
                 }
             }
@@ -267,49 +265,48 @@ const lessonController = {
             const updatedLesson = await Lesson.findByIdAndUpdate(
                 id,
                 { $set: updateData },
-                { 
+                {
                     new: true,
-                    runValidators: true
+                    runValidators: true,
                 }
             )
-            .populate("instructor", "name email avatar")
-            .populate("prerequisites", "title order")
-            .populate("course", "title description");
+                .populate("instructor", "name email avatar")
+                .populate("prerequisites", "title order")
+                .populate("course", "title description");
 
             res.status(200).json({
                 success: true,
                 message: "Lesson updated successfully",
-                lesson: updatedLesson
+                lesson: updatedLesson,
             });
-
         } catch (error) {
             console.error("Error updating lesson:", error);
-            
+
             if (error.name === "CastError") {
                 return res.status(400).json({
                     success: false,
-                    error: "Invalid lesson ID format"
+                    error: "Invalid lesson ID format",
                 });
             }
-            
+
             if (error.code === 11000) {
                 return res.status(400).json({
                     success: false,
-                    error: "Duplicate lesson order in this course"
+                    error: "Duplicate lesson order in this course",
                 });
             }
-            
+
             if (error.name === "ValidationError") {
                 return res.status(400).json({
                     success: false,
                     error: "Validation error",
-                    details: Object.values(error.errors).map(e => e.message)
+                    details: Object.values(error.errors).map((e) => e.message),
                 });
             }
-            
+
             res.status(500).json({
                 success: false,
-                error: "Internal server error"
+                error: "Internal server error",
             });
         }
     },
@@ -322,7 +319,7 @@ const lessonController = {
             if (!id) {
                 return res.status(400).json({
                     success: false,
-                    error: "Lesson ID is required"
+                    error: "Lesson ID is required",
                 });
             }
 
@@ -331,7 +328,7 @@ const lessonController = {
             if (!lesson) {
                 return res.status(404).json({
                     success: false,
-                    error: "Lesson not found"
+                    error: "Lesson not found",
                 });
             }
 
@@ -340,7 +337,7 @@ const lessonController = {
 
             // ✅ Remove lesson from course's lessons array
             await Course.findByIdAndUpdate(lesson.course, {
-                $pull: { lessons: id }
+                $pull: { lessons: id },
             });
 
             // ✅ Remove this lesson from other lessons' prerequisites
@@ -355,23 +352,22 @@ const lessonController = {
                 deletedLesson: {
                     _id: lesson._id,
                     title: lesson.title,
-                    course: lesson.course
-                }
+                    course: lesson.course,
+                },
             });
-
         } catch (error) {
             console.error("Error deleting lesson:", error);
-            
+
             if (error.name === "CastError") {
                 return res.status(400).json({
                     success: false,
-                    error: "Invalid lesson ID format"
+                    error: "Invalid lesson ID format",
                 });
             }
-            
+
             res.status(500).json({
                 success: false,
-                error: "Internal server error"
+                error: "Internal server error",
             });
         }
     },
@@ -384,7 +380,7 @@ const lessonController = {
             if (!id) {
                 return res.status(400).json({
                     success: false,
-                    error: "Lesson ID is required"
+                    error: "Lesson ID is required",
                 });
             }
 
@@ -392,7 +388,7 @@ const lessonController = {
             if (!lesson) {
                 return res.status(404).json({
                     success: false,
-                    error: "Lesson not found"
+                    error: "Lesson not found",
                 });
             }
 
@@ -401,23 +397,24 @@ const lessonController = {
                 { isPublished: !lesson.isPublished },
                 { new: true }
             )
-            .populate("instructor", "name email avatar")
-            .populate("course", "title");
+                .populate("instructor", "name email avatar")
+                .populate("course", "title");
 
             res.status(200).json({
                 success: true,
-                message: `Lesson ${updatedLesson.isPublished ? 'published' : 'unpublished'} successfully`,
-                lesson: updatedLesson
+                message: `Lesson ${
+                    updatedLesson.isPublished ? "published" : "unpublished"
+                } successfully`,
+                lesson: updatedLesson,
             });
-
         } catch (error) {
             console.error("Error toggling lesson publish status:", error);
             res.status(500).json({
                 success: false,
-                error: "Internal server error"
+                error: "Internal server error",
             });
         }
-    }
+    },
 };
 
 module.exports = lessonController;

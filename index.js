@@ -20,6 +20,7 @@ const enrollmentRoutes = require("./src/routes/enrollmentRoute");
 const statsRoutes = require("./src/routes/statsRoute");
 const bkashRoutes = require("./src/routes/bkashRoute");
 const paymentRoutes = require("./src/routes/paymentRoute");
+const lessonRoutes = require("./src/routes/lessonRoute");
 
 // import socket handler
 const socketHandler = require("./src/socket/socketHandler");
@@ -111,6 +112,7 @@ app.use("/api/sessions", sessionRoutes);
 app.use("/api/contact", contactRoute);
 app.use("/api/courses", courseRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
+app.use("/api/lessons", lessonRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/bkash", bkashRoutes);
 app.use("/api/payments", paymentRoutes);
