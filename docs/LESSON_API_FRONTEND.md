@@ -825,7 +825,7 @@ class LessonService {
         publishedOnly = false,
         includeContent = false
     ): Promise<LessonsResponse> {
-        const response = await axios.get(`${API_BASE_URL}/course/${courseId}`, {
+        const response = await axios.get(`/course/${courseId}`, {
             params: {
                 publishedOnly: publishedOnly.toString(),
                 includeContent: includeContent.toString(),
@@ -836,7 +836,7 @@ class LessonService {
     }
 
     async getLesson(lessonId: string): Promise<LessonResponse> {
-        const response = await axios.get(`${API_BASE_URL}/${lessonId}`, {
+        const response = await axios.get(`/${lessonId}`, {
             headers: this.getHeaders(),
         });
         return response.data;
@@ -846,14 +846,14 @@ class LessonService {
         lessonId: string,
         data: UpdateLessonRequest
     ): Promise<LessonResponse> {
-        const response = await axios.put(`${API_BASE_URL}/${lessonId}`, data, {
+        const response = await axios.put(`/${lessonId}`, data, {
             headers: this.getHeaders(),
         });
         return response.data;
     }
 
     async deleteLesson(lessonId: string): Promise<ApiResponse<any>> {
-        const response = await axios.delete(`${API_BASE_URL}/${lessonId}`, {
+        const response = await axios.delete(`/${lessonId}`, {
             headers: this.getHeaders(),
         });
         return response.data;
@@ -861,7 +861,7 @@ class LessonService {
 
     async togglePublish(lessonId: string): Promise<LessonResponse> {
         const response = await axios.patch(
-            `${API_BASE_URL}/${lessonId}/publish`,
+            `/${lessonId}/publish`,
             {},
             {
                 headers: this.getHeaders(),
