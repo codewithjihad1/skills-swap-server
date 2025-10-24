@@ -3,6 +3,7 @@
 ## Prerequisites
 
 1. Start the backend server:
+
 ```bash
 cd skills-swap-server
 npm start
@@ -21,25 +22,29 @@ npm start
 ## Testing with the Frontend
 
 ### 1. Start the Frontend
+
 ```bash
 cd skills-swap-client
 npm run dev
 ```
 
 ### 2. Login as Admin
-- Navigate to `http://localhost:3000`
-- Login with an admin account
-- Go to Admin Dashboard → Manage Users
+
+-   Navigate to `http://localhost:3000`
+-   Login with an admin account
+-   Go to Admin Dashboard → Manage Users
 
 ### 3. Test Features
 
 #### View Users
-- The page should automatically load all users
-- Try the search bar to search by name or email
-- Filter by role (User, Instructor, Admin)
-- Filter by status (Active, Suspended, Banned)
+
+-   The page should automatically load all users
+-   Try the search bar to search by name or email
+-   Filter by role (User, Instructor, Admin)
+-   Filter by status (Active, Suspended, Banned)
 
 #### Change User Role
+
 1. Click the three-dot menu on any user row
 2. Select "Change Role" → Choose a role
 3. Confirm the action
@@ -47,6 +52,7 @@ npm run dev
 5. User role should update in the table
 
 #### Change User Status
+
 1. Click the three-dot menu on any user row
 2. Select "Change Status" → Choose a status
 3. Confirm the action
@@ -54,6 +60,7 @@ npm run dev
 5. User status badge should update
 
 #### Delete User
+
 1. Click the three-dot menu on any user row
 2. Select "Delete User"
 3. Confirm the destructive action
@@ -63,11 +70,13 @@ npm run dev
 ## Testing with cURL (Backend Only)
 
 ### 1. Get All Users
+
 ```bash
 curl http://localhost:5000/api/users
 ```
 
 ### 2. Get Users with Filters
+
 ```bash
 # Filter by role
 curl http://localhost:5000/api/users?role=instructor
@@ -83,25 +92,28 @@ curl "http://localhost:5000/api/users?role=instructor&status=active&search=john&
 ```
 
 ### 3. Get User Statistics
+
 ```bash
 curl http://localhost:5000/api/users/stats
 ```
 
 Expected response:
+
 ```json
 {
-  "stats": {
-    "totalUsers": 150,
-    "activeUsers": 120,
-    "instructors": 15,
-    "students": 135,
-    "suspendedUsers": 30,
-    "pendingApprovals": 0
-  }
+    "stats": {
+        "totalUsers": 150,
+        "activeUsers": 120,
+        "instructors": 15,
+        "students": 135,
+        "suspendedUsers": 30,
+        "pendingApprovals": 0
+    }
 }
 ```
 
 ### 4. Update User Role
+
 ```bash
 # Replace USER_ID with actual user ID
 curl -X PATCH http://localhost:5000/api/users/USER_ID/role \
@@ -110,6 +122,7 @@ curl -X PATCH http://localhost:5000/api/users/USER_ID/role \
 ```
 
 ### 5. Update User Status
+
 ```bash
 # Suspend a user
 curl -X PATCH http://localhost:5000/api/users/USER_ID/status \
@@ -123,6 +136,7 @@ curl -X PATCH http://localhost:5000/api/users/USER_ID/status \
 ```
 
 ### 6. Delete User
+
 ```bash
 # Soft delete (deactivate)
 curl -X DELETE http://localhost:5000/api/users/USER_ID
@@ -136,100 +150,121 @@ curl -X DELETE "http://localhost:5000/api/users/USER_ID?permanent=true"
 ### Frontend
 
 1. **Stats Cards** should show real numbers:
-   - Total Users
-   - Active Users
-   - Instructors
-   - Suspended Users
+
+    - Total Users
+    - Active Users
+    - Instructors
+    - Suspended Users
 
 2. **User Table** should display:
-   - User avatar and name
-   - Email address
-   - Role badge (colored)
-   - Status badge (colored)
-   - Joined date
-   - Actions dropdown menu
+
+    - User avatar and name
+    - Email address
+    - Role badge (colored)
+    - Status badge (colored)
+    - Joined date
+    - Actions dropdown menu
 
 3. **Filters** should work:
-   - Search should filter by name/email in real-time
-   - Role filter should show only selected role
-   - Status filter should show only selected status
-   - Combine all filters together
+
+    - Search should filter by name/email in real-time
+    - Role filter should show only selected role
+    - Status filter should show only selected status
+    - Combine all filters together
 
 4. **Actions** should work:
-   - All actions should show confirmation dialog
-   - Success/error toast notifications
-   - Table should refresh after action
-   - Stats should update after action
+
+    - All actions should show confirmation dialog
+    - Success/error toast notifications
+    - Table should refresh after action
+    - Stats should update after action
 
 5. **Pagination** should appear when > 10 users
-   - Previous/Next buttons
-   - Page counter
-   - 10 users per page
+    - Previous/Next buttons
+    - Page counter
+    - 10 users per page
 
 ### Backend
 
 1. **GET /api/users** should:
-   - Return users array with all fields
-   - Apply filters correctly
-   - Support pagination
-   - Map `student` → `user` role
-   - Add `status` field based on `isActive`
+
+    - Return users array with all fields
+    - Apply filters correctly
+    - Support pagination
+    - Map `student` → `user` role
+    - Add `status` field based on `isActive`
 
 2. **GET /api/users/stats** should:
-   - Return aggregate counts
-   - Count all users, active, suspended
-   - Count instructors and students separately
+
+    - Return aggregate counts
+    - Count all users, active, suspended
+    - Count instructors and students separately
 
 3. **PATCH /api/users/:id/role** should:
-   - Validate role input
-   - Update user role in database
-   - Map `user` → `student` for backend
-   - Return updated user object
+
+    - Validate role input
+    - Update user role in database
+    - Map `user` → `student` for backend
+    - Return updated user object
 
 4. **PATCH /api/users/:id/status** should:
-   - Validate status input
-   - Update `isActive` field
-   - Return updated user object
+
+    - Validate status input
+    - Update `isActive` field
+    - Return updated user object
 
 5. **DELETE /api/users/:id** should:
-   - Soft delete by default (set `isActive: false`)
-   - Permanent delete with `?permanent=true`
-   - Return success message
+    - Soft delete by default (set `isActive: false`)
+    - Permanent delete with `?permanent=true`
+    - Return success message
 
 ## Common Issues & Solutions
 
 ### Issue: "Cannot GET /api/users"
+
 **Solution:** Make sure the route is registered in `index.js`:
+
 ```javascript
 app.use("/api/users", userRoutes);
 ```
 
 ### Issue: Role not updating
+
 **Solution:** Check role mapping:
-- Frontend sends: `user`, `instructor`, `admin`
-- Backend stores: `student`, `instructor`, `admin`
-- Make sure mapping is correct in both directions
+
+-   Frontend sends: `user`, `instructor`, `admin`
+-   Backend stores: `student`, `instructor`, `admin`
+-   Make sure mapping is correct in both directions
 
 ### Issue: Stats showing 0
-**Solution:** 
+
+**Solution:**
+
 1. Check if MongoDB has user data
 2. Run this in MongoDB shell:
+
 ```javascript
-db.users.countDocuments()
-db.users.find({ role: 'instructor' }).count()
+db.users.countDocuments();
+db.users.find({ role: "instructor" }).count();
 ```
 
 ### Issue: Search not working
+
 **Solution:** Ensure MongoDB supports regex:
+
 ```javascript
-{ $or: [
-  { name: { $regex: search, $options: 'i' } },
-  { email: { $regex: search, $options: 'i' } }
-]}
+{
+    $or: [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+    ];
+}
 ```
 
 ### Issue: CORS error
+
 **Solution:** Check CORS configuration in `index.js`:
+
 ```javascript
 app.use(cors());
 ```
@@ -237,15 +272,17 @@ app.use(cors());
 ## Role & Status Values
 
 ### Valid Roles (Frontend)
-- `user` → Maps to `student` in backend
-- `instructor`
-- `admin`
+
+-   `user` → Maps to `student` in backend
+-   `instructor`
+-   `admin`
 
 ### Valid Statuses (Frontend)
-- `active` → `isActive: true`
-- `suspended` → `isActive: false`
-- `banned` → `isActive: false`
-- `pending` → Custom field (not implemented yet)
+
+-   `active` → `isActive: true`
+-   `suspended` → `isActive: false`
+-   `banned` → `isActive: false`
+-   `pending` → Custom field (not implemented yet)
 
 ## Next Steps
 
@@ -258,25 +295,25 @@ app.use(cors());
 
 ## Verification Checklist
 
-- [ ] Backend server starts without errors
-- [ ] All routes are registered correctly
-- [ ] GET /api/users returns user list
-- [ ] GET /api/users/stats returns statistics
-- [ ] PATCH role endpoint works
-- [ ] PATCH status endpoint works
-- [ ] DELETE endpoint works (both soft and hard delete)
-- [ ] Frontend displays stats cards
-- [ ] Frontend displays user table
-- [ ] Search filter works
-- [ ] Role filter works
-- [ ] Status filter works
-- [ ] Role change action works
-- [ ] Status change action works
-- [ ] Delete action works
-- [ ] Confirmation dialogs appear
-- [ ] Toast notifications appear
-- [ ] Table refreshes after actions
-- [ ] Pagination works for > 10 users
+-   [ ] Backend server starts without errors
+-   [ ] All routes are registered correctly
+-   [ ] GET /api/users returns user list
+-   [ ] GET /api/users/stats returns statistics
+-   [ ] PATCH role endpoint works
+-   [ ] PATCH status endpoint works
+-   [ ] DELETE endpoint works (both soft and hard delete)
+-   [ ] Frontend displays stats cards
+-   [ ] Frontend displays user table
+-   [ ] Search filter works
+-   [ ] Role filter works
+-   [ ] Status filter works
+-   [ ] Role change action works
+-   [ ] Status change action works
+-   [ ] Delete action works
+-   [ ] Confirmation dialogs appear
+-   [ ] Toast notifications appear
+-   [ ] Table refreshes after actions
+-   [ ] Pagination works for > 10 users
 
 ---
 
