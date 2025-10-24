@@ -968,7 +968,7 @@ export const useGetCourse = (courseId) => {
     return useQuery({
         queryKey: ["course", courseId],
         queryFn: async () => {
-            const { data } = await axios.get(`${API_BASE_URL}/${courseId}`);
+            const { data } = await axios.get(`/${courseId}`);
             return data;
         },
         enabled: !!courseId,
@@ -996,10 +996,7 @@ export const useUpdateCourse = () => {
 
     return useMutation({
         mutationFn: async ({ courseId, updates }) => {
-            const { data } = await axios.put(
-                `${API_BASE_URL}/${courseId}`,
-                updates
-            );
+            const { data } = await axios.put(`/${courseId}`, updates);
             return data;
         },
         onSuccess: (data, variables) => {
@@ -1017,7 +1014,7 @@ export const useDeleteCourse = () => {
 
     return useMutation({
         mutationFn: async (courseId) => {
-            const { data } = await axios.delete(`${API_BASE_URL}/${courseId}`);
+            const { data } = await axios.delete(`/${courseId}`);
             return data;
         },
         onSuccess: () => {
