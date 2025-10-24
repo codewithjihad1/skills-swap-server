@@ -498,6 +498,229 @@ const rateCourse = async (req, res) => {
     }
 };
 
+/**
+ * @route   GET /api/enrollments/course/:courseId
+ * @desc    Get all enrollments/students for a specific course
+ * @access  Private (Instructor/Admin)
+ */
+const getEnrollmentsByCourse = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const { status, sortBy = "enrolledAt", order = "desc" } = req.query;
+
+        // Verify course exists
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({
+                error: "Course not found",
+            });
+        }
+
+        // Build query
+        const query = { course: courseId };
+        if (status) {
+            query.status = status;
+        }
+
+        // Build sort
+        const sortOrder = order === "asc" ? 1 : -1;
+        const sort = { [sortBy]: sortOrder };
+
+        // Get enrollments
+        const enrollments = await Enrollment.find(query)
+            .sort(sort)
+            .populate({
+                path: "user",
+                select: "name email avatar role",
+            })
+            .populate({
+                path: "course",
+                select: "title thumbnail instructor",
+            })
+            .lean();
+
+        // Calculate statistics
+        const stats = {
+            totalEnrollments: enrollments.length,
+            activeEnrollments: enrollments.filter((e) => e.status === "active")
+                .length,
+            completedEnrollments: enrollments.filter(
+                (e) => e.status === "completed"
+            ).length,
+            droppedEnrollments: enrollments.filter(
+                (e) => e.status === "dropped"
+            ).length,
+            averageProgress:
+                enrollments.length > 0
+                    ? Math.round(
+                          enrollments.reduce(
+                              (sum, e) =>
+                                  sum + (e.progress?.progressPercentage || 0),
+                              0
+                          ) / enrollments.length
+                      )
+                    : 0,
+            totalRevenue: enrollments.reduce(
+                (sum, e) =>
+                    sum +
+                    (e.paymentStatus === "completed"
+                        ? e.paymentAmount || 0
+                        : 0),
+                0
+            ),
+        };
+
+        res.status(200).json({
+            success: true,
+            count: enrollments.length,
+            stats,
+            enrollments,
+            students: enrollments, // Alias for frontend compatibility
+        });
+    } catch (error) {
+        console.error("Error fetching course enrollments:", error);
+        res.status(500).json({
+            error: "Failed to fetch course enrollments",
+            details: error.message,
+        });
+    }
+};
+
+/**
+ * @route   GET /api/enrollments/instructor/:instructorId
+ * @desc    Get all enrollments/students across all instructor's courses
+ * @access  Private (Instructor/Admin)
+ */
+const getEnrollmentsByInstructor = async (req, res) => {
+    try {
+        const { instructorId } = req.params;
+        const {
+            status,
+            courseId,
+            sortBy = "enrolledAt",
+            order = "desc",
+        } = req.query;
+
+        // Get all courses by this instructor
+        const coursesQuery = { instructor: instructorId };
+        if (courseId) {
+            coursesQuery._id = courseId;
+        }
+
+        const courses = await Course.find(coursesQuery).select("_id title");
+
+        if (courses.length === 0) {
+            return res.status(200).json({
+                success: true,
+                count: 0,
+                stats: {
+                    totalStudents: 0,
+                    activeStudents: 0,
+                    completedStudents: 0,
+                    droppedStudents: 0,
+                    averageProgress: 0,
+                    totalRevenue: 0,
+                    totalCourses: 0,
+                },
+                enrollments: [],
+                students: [],
+            });
+        }
+
+        const courseIds = courses.map((c) => c._id);
+
+        // Build query
+        const query = { course: { $in: courseIds } };
+        if (status) {
+            query.status = status;
+        }
+
+        // Build sort
+        const sortOrder = order === "asc" ? 1 : -1;
+        const sort = { [sortBy]: sortOrder };
+
+        // Get enrollments
+        const enrollments = await Enrollment.find(query)
+            .sort(sort)
+            .populate({
+                path: "user",
+                select: "name email avatar role",
+            })
+            .populate({
+                path: "course",
+                select: "title thumbnail category level",
+            })
+            .lean();
+
+        // Calculate statistics
+        const activeEnrollments = enrollments.filter(
+            (e) => e.status === "active"
+        );
+        const completedEnrollments = enrollments.filter(
+            (e) => e.status === "completed"
+        );
+        const droppedEnrollments = enrollments.filter(
+            (e) => e.status === "dropped"
+        );
+
+        // Get unique students count
+        const uniqueStudents = new Set(
+            enrollments.map((e) => e.user._id.toString())
+        );
+
+        const stats = {
+            totalStudents: uniqueStudents.size,
+            totalEnrollments: enrollments.length,
+            activeStudents: new Set(
+                activeEnrollments.map((e) => e.user._id.toString())
+            ).size,
+            completedStudents: new Set(
+                completedEnrollments.map((e) => e.user._id.toString())
+            ).size,
+            droppedStudents: new Set(
+                droppedEnrollments.map((e) => e.user._id.toString())
+            ).size,
+            averageProgress:
+                enrollments.length > 0
+                    ? Math.round(
+                          enrollments.reduce(
+                              (sum, e) =>
+                                  sum + (e.progress?.progressPercentage || 0),
+                              0
+                          ) / enrollments.length
+                      )
+                    : 0,
+            totalRevenue: enrollments.reduce(
+                (sum, e) =>
+                    sum +
+                    (e.paymentStatus === "completed"
+                        ? e.paymentAmount || 0
+                        : 0),
+                0
+            ),
+            totalCourses: courses.length,
+        };
+
+        res.status(200).json({
+            success: true,
+            count: enrollments.length,
+            stats,
+            enrollments,
+            students: enrollments, // Alias for frontend compatibility
+            courses: courses.map((c) => ({
+                _id: c._id,
+                title: c.title,
+            })),
+        });
+    } catch (error) {
+        console.error("Error fetching instructor enrollments:", error);
+        res.status(500).json({
+            error: "Failed to fetch instructor enrollments",
+            details: error.message,
+        });
+    }
+};
+
 module.exports = {
     enrollInCourse,
     getMyEnrolledCourses,
@@ -505,4 +728,6 @@ module.exports = {
     updateLessonProgress,
     unenrollFromCourse,
     rateCourse,
+    getEnrollmentsByCourse,
+    getEnrollmentsByInstructor,
 };

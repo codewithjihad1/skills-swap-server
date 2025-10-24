@@ -56,4 +56,26 @@ router.delete("/unenroll/:courseId", unenrollFromCourse);
  */
 router.post("/rate/:courseId", rateCourse);
 
+/**
+ * @route   GET /api/enrollments/course/:courseId
+ * @desc    Get all enrollments/students for a specific course
+ * @access  Private (Instructor/Admin)
+ * @query   status, sortBy, order
+ */
+router.get(
+    "/course/:courseId",
+    require("../controllers/enrollmentController").getEnrollmentsByCourse
+);
+
+/**
+ * @route   GET /api/enrollments/instructor/:instructorId
+ * @desc    Get all enrollments/students across all instructor's courses
+ * @access  Private (Instructor/Admin)
+ * @query   status, courseId, sortBy, order
+ */
+router.get(
+    "/instructor/:instructorId",
+    require("../controllers/enrollmentController").getEnrollmentsByInstructor
+);
+
 module.exports = router;

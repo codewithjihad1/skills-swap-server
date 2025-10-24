@@ -1116,8 +1116,7 @@ const CourseLearningPage = ({ courseId, userId }) => {
                 {/* Overall Progress */}
                 <div className="overall-progress">
                     <h3>
-                        Overall Progress: {progress.progress.progressPercentage}
-                        %
+                        Overall Progress: {progress.progress.progressPercentage}%
                     </h3>
                     <div className="progress-bar large">
                         <div
@@ -1233,7 +1232,7 @@ export const useMyEnrollments = (userId, filters = {}) => {
     return useQuery({
         queryKey: ["enrollments", userId, filters],
         queryFn: async () => {
-            const { data } = await axios.get(`${API_BASE_URL}/my-courses`, {
+            const { data } = await axios.get(`/my-courses`, {
                 params: { userId, ...filters },
             });
             return data;
@@ -1247,12 +1246,9 @@ export const useCourseProgress = (courseId, userId) => {
     return useQuery({
         queryKey: ["course-progress", courseId, userId],
         queryFn: async () => {
-            const { data } = await axios.get(
-                `${API_BASE_URL}/progress/${courseId}`,
-                {
-                    params: { userId },
-                }
-            );
+            const { data } = await axios.get(`/progress/${courseId}`, {
+                params: { userId },
+            });
             return data;
         },
         enabled: !!courseId && !!userId,
@@ -1265,10 +1261,9 @@ export const useEnrollInCourse = () => {
 
     return useMutation({
         mutationFn: async ({ courseId, userId }) => {
-            const { data } = await axios.post(
-                `${API_BASE_URL}/enroll/${courseId}`,
-                { userId }
-            );
+            const { data } = await axios.post(`/enroll/${courseId}`, {
+                userId,
+            });
             return data;
         },
         onSuccess: (data, variables) => {
@@ -1291,15 +1286,12 @@ export const useUpdateLessonProgress = () => {
             lessonIndex,
             completed,
         }) => {
-            const { data } = await axios.put(
-                `${API_BASE_URL}/progress/${courseId}`,
-                {
-                    userId,
-                    week,
-                    lessonIndex,
-                    completed,
-                }
-            );
+            const { data } = await axios.put(`/progress/${courseId}`, {
+                userId,
+                week,
+                lessonIndex,
+                completed,
+            });
             return data;
         },
         onSuccess: (data, variables) => {
@@ -1323,12 +1315,9 @@ export const useUnenrollFromCourse = () => {
 
     return useMutation({
         mutationFn: async ({ courseId, userId }) => {
-            const { data } = await axios.delete(
-                `${API_BASE_URL}/unenroll/${courseId}`,
-                {
-                    data: { userId },
-                }
-            );
+            const { data } = await axios.delete(`/unenroll/${courseId}`, {
+                data: { userId },
+            });
             return data;
         },
         onSuccess: (data, variables) => {
@@ -1345,14 +1334,11 @@ export const useRateCourse = () => {
 
     return useMutation({
         mutationFn: async ({ courseId, userId, score, review }) => {
-            const { data } = await axios.post(
-                `${API_BASE_URL}/rate/${courseId}`,
-                {
-                    userId,
-                    score,
-                    review,
-                }
-            );
+            const { data } = await axios.post(`/rate/${courseId}`, {
+                userId,
+                score,
+                review,
+            });
             return data;
         },
         onSuccess: (data, variables) => {
