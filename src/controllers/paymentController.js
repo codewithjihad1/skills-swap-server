@@ -214,6 +214,26 @@ const completePayment = async (req, res) => {
             payment.completedAt = new Date();
             await payment.save();
 
+            // Update enrollment payment status
+            const Enrollment = require("../models/Enrollment");
+            const enrollment = await Enrollment.findOne({
+                user: payment.userId,
+                course: payment.courseId,
+            });
+
+            if (enrollment) {
+                enrollment.paymentStatus = "completed";
+                enrollment.paymentAmount = payment.amount;
+                await enrollment.save();
+                console.log(
+                    `Enrollment payment status updated for user ${payment.userId} and course ${payment.courseId}`
+                );
+            } else {
+                console.warn(
+                    `Enrollment not found for user ${payment.userId} and course ${payment.courseId}`
+                );
+            }
+
             return res.status(200).json({
                 success: true,
                 message: "Payment completed successfully",
@@ -223,6 +243,7 @@ const completePayment = async (req, res) => {
                     trxID: payment.trxID,
                     amount: payment.amount,
                     status: payment.status,
+                    enrollmentUpdated: !!enrollment,
                 },
             });
         } else {
