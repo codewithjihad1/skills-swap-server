@@ -1,12 +1,13 @@
 # Payment and Enrollment Update Flow
 
 ## Overview
+
 This document explains how payment completion automatically updates both the Payment and Enrollment collections in MongoDB.
 
 ## Flow Diagram
 
 ```
-User Clicks "Pay" 
+User Clicks "Pay"
     ↓
 1. POST /api/payments/initiate
     ↓
@@ -38,6 +39,7 @@ User Clicks "Pay"
 ## Database Updates
 
 ### Payment Collection Update
+
 When payment is completed, the following fields are updated:
 
 ```javascript
@@ -52,6 +54,7 @@ When payment is completed, the following fields are updated:
 ```
 
 ### Enrollment Collection Update
+
 Automatically triggered after payment completion:
 
 ```javascript
@@ -66,6 +69,7 @@ Automatically triggered after payment completion:
 ### Server-Side (paymentController.js)
 
 The `completePayment` function handles:
+
 1. Payment execution with bKash
 2. Payment record update
 3. **Enrollment status update** (NEW)
@@ -88,6 +92,7 @@ if (enrollment) {
 ### Client-Side (payment/success/page.tsx)
 
 When user is redirected after payment:
+
 1. Retrieves `paymentID` from URL
 2. Retrieves `orderId` from sessionStorage
 3. Calls `/api/payments/complete` endpoint
@@ -97,17 +102,20 @@ When user is redirected after payment:
 ## Key Files Modified
 
 ### Server Files
-- `src/controllers/paymentController.js` - Added enrollment update logic
-- `src/models/Payment.js` - Payment schema
-- `src/models/Enrollment.js` - Enrollment schema with paymentStatus field
+
+-   `src/controllers/paymentController.js` - Added enrollment update logic
+-   `src/models/Payment.js` - Payment schema
+-   `src/models/Enrollment.js` - Enrollment schema with paymentStatus field
 
 ### Client Files
-- `src/app/payment/success/page.tsx` - Payment verification page
-- `src/app/(home)/courses/[courseId]/checkout/page.tsx` - Checkout page
+
+-   `src/app/payment/success/page.tsx` - Payment verification page
+-   `src/app/(home)/courses/[courseId]/checkout/page.tsx` - Checkout page
 
 ## Testing Flow
 
 ### 1. Enroll in Course
+
 ```bash
 POST /api/enrollments/enroll/:courseId
 {
@@ -118,6 +126,7 @@ POST /api/enrollments/enroll/:courseId
 Creates enrollment with `paymentStatus: "pending"`
 
 ### 2. Initiate Payment
+
 ```bash
 POST /api/payments/initiate
 {
@@ -131,6 +140,7 @@ POST /api/payments/initiate
 ```
 
 ### 3. Complete Payment (After bKash redirect)
+
 ```bash
 POST /api/payments/complete
 {
@@ -140,11 +150,13 @@ POST /api/payments/complete
 ```
 
 This will:
-- Execute bKash payment
-- Update Payment: `status: "completed"`
-- Update Enrollment: `paymentStatus: "completed"`
+
+-   Execute bKash payment
+-   Update Payment: `status: "completed"`
+-   Update Enrollment: `paymentStatus: "completed"`
 
 ### 4. Verify Updates
+
 ```bash
 # Check payment
 GET /api/payments/status/:orderId
@@ -156,14 +168,16 @@ GET /api/enrollments/my-courses?userId=xxx
 ## Error Handling
 
 ### Payment Fails
-- Payment status: `"failed"`
-- Enrollment status: Remains `"pending"`
-- User can retry payment
+
+-   Payment status: `"failed"`
+-   Enrollment status: Remains `"pending"`
+-   User can retry payment
 
 ### Enrollment Not Found
-- Payment completes successfully
-- Warning logged in console
-- Response includes `enrollmentUpdated: false`
+
+-   Payment completes successfully
+-   Warning logged in console
+-   Response includes `enrollmentUpdated: false`
 
 ## Environment Variables Required
 
@@ -183,6 +197,7 @@ CLIENT_URL=http://localhost:3000
 ## Database Schema
 
 ### Payment Schema
+
 ```javascript
 {
   userId: ObjectId,
@@ -201,6 +216,7 @@ CLIENT_URL=http://localhost:3000
 ```
 
 ### Enrollment Schema
+
 ```javascript
 {
   user: ObjectId,
@@ -219,28 +235,29 @@ CLIENT_URL=http://localhost:3000
 ## API Response Example
 
 ### Successful Payment Completion
+
 ```json
 {
-  "success": true,
-  "message": "Payment completed successfully",
-  "data": {
-    "orderId": "ORD-1234567890-ABC123",
-    "paymentID": "bkash_payment_id",
-    "trxID": "bkash_transaction_id",
-    "amount": 1500,
-    "status": "completed",
-    "enrollmentUpdated": true
-  }
+    "success": true,
+    "message": "Payment completed successfully",
+    "data": {
+        "orderId": "ORD-1234567890-ABC123",
+        "paymentID": "bkash_payment_id",
+        "trxID": "bkash_transaction_id",
+        "amount": 1500,
+        "status": "completed",
+        "enrollmentUpdated": true
+    }
 }
 ```
 
 ## Notes
 
-- The enrollment must be created BEFORE payment (using `/api/enrollments/enroll`)
-- The enrollment is created with `paymentStatus: "pending"` for paid courses
-- Only after successful payment does the `paymentStatus` change to `"completed"`
-- If payment fails, enrollment remains in `"pending"` state
-- Free courses have `paymentStatus: "free"` from the start
+-   The enrollment must be created BEFORE payment (using `/api/enrollments/enroll`)
+-   The enrollment is created with `paymentStatus: "pending"` for paid courses
+-   Only after successful payment does the `paymentStatus` change to `"completed"`
+-   If payment fails, enrollment remains in `"pending"` state
+-   Free courses have `paymentStatus: "free"` from the start
 
 ## Future Improvements
 
